@@ -1,4 +1,5 @@
 # test_ecuacion.py 
+import math
 import unittest 
 from ecuacion import resolver_ecuacion 
   
@@ -17,7 +18,6 @@ class TestResolverEcuacion(unittest.TestCase):
         """x^2 - 2x + 1 = 0  =>  x=1""" 
         res = resolver_ecuacion(1, -2, 1) 
         self.assertEqual(res["tipo"], "una_solucion") 
-        # Correccion: res["soluciones"] es una lista, se accede al indice [0]
         self.assertAlmostEqual(res["soluciones"][0], 1.0) 
   
     def test_sin_solucion_real(self): 
@@ -54,7 +54,19 @@ class TestResolverEcuacion(unittest.TestCase):
                 else: 
                     self.assertAlmostEqual(res["soluciones"][0], sol_esp) 
 
-    # ------------------ RETO: 3 NUEVAS PRUEBAS ------------------
+    # ------------------ RETO / CASOS ADICIONALES ------------------
+
+    def test_coeficientes_grandes(self):
+        """1000000x^2 + 1000000x + 1000000 = 0 => sin solucion real"""
+        res = resolver_ecuacion(1000000, 1000000, 1000000)
+        self.assertEqual(res["tipo"], "sin_solucion_real")
+        self.assertEqual(res["soluciones"], [])
+
+    def test_coeficientes_cero_parciales(self):
+        """x^2 = 0 => a=1, b=0, c=0 => una solucion x = 0.0"""
+        res = resolver_ecuacion(1, 0, 0)
+        self.assertEqual(res["tipo"], "una_solucion")
+        self.assertAlmostEqual(res["soluciones"][0], 0.0)
 
     def test_coeficiente_a_negativo(self):
         """-x^2 + 4 = 0 => x1 = -2.0, x2 = 2.0"""
@@ -69,13 +81,11 @@ class TestResolverEcuacion(unittest.TestCase):
             resolver_ecuacion(0, 0, 0)
 
     def test_alta_precision_decimal(self):
-        """x^2 - 2 = 0 => x = sqrt(2) con precision de 10 decimales"""
-        import math
+        """x^2 - 2 = 0 => x1 = sqrt(2), x2 = -sqrt(2) con precision de 10 decimales"""
         res = resolver_ecuacion(1, 0, -2)
         self.assertEqual(res["tipo"], "dos_soluciones")
         self.assertAlmostEqual(res["soluciones"][0], math.sqrt(2), places=10)
         self.assertAlmostEqual(res["soluciones"][1], -math.sqrt(2), places=10)
-
 
 if __name__ == '__main__': 
     unittest.main()

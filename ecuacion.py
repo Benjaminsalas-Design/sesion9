@@ -2,7 +2,7 @@
 import math 
 
 def resolver_ecuacion(a, b, c): 
-    """Resuelve ax^2 + bx + c = 0.""" 
+    """Resuelve ax^2 + bx + c = 0 validando restricciones numéricas.""" 
     if a == 0: 
         if b == 0: 
             raise ValueError( 

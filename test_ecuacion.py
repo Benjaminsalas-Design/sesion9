@@ -8,84 +8,160 @@ class TestResolverEcuacion(unittest.TestCase):
     # ------------------ PRUEBAS BASE ------------------
   
     def test_dos_soluciones_reales(self): 
-        """x^2 - 5x + 6 = 0  =>  x=3, x=2""" 
-        res = resolver_ecuacion(1, -5, 6) 
-        self.assertEqual(res["tipo"], "dos_soluciones") 
-        self.assertAlmostEqual(res["soluciones"][0], 3.0) 
-        self.assertAlmostEqual(res["soluciones"][1], 2.0) 
+        """Valida ecuaciones cuadraticas con dos soluciones reales distintas."""
+        # 1. Arrange
+        a, b, c = 1, -5, 6
+        tipo_esperado = "dos_soluciones"
+        x1_esperado, x2_esperado = 3.0, 2.0
+
+        # 2. Act
+        res = resolver_ecuacion(a, b, c) 
+
+        # 3. Assert
+        self.assertIn("soluciones", res)
+        self.assertEqual(res["tipo"], tipo_esperado) 
+        self.assertEqual(len(res["soluciones"]), 2)
+        self.assertAlmostEqual(res["soluciones"][0], x1_esperado) 
+        self.assertAlmostEqual(res["soluciones"][1], x2_esperado) 
   
     def test_una_solucion(self): 
-        """x^2 - 2x + 1 = 0  =>  x=1""" 
-        res = resolver_ecuacion(1, -2, 1) 
-        self.assertEqual(res["tipo"], "una_solucion") 
-        self.assertAlmostEqual(res["soluciones"][0], 1.0) 
+        """Verifica la existencia y valor unico cuando el discriminante es cero."""
+        # 1. Arrange
+        a, b, c = 1, -2, 1
+        tipo_esperado = "una_solucion"
+        solucion_esperada = 1.0
+
+        # 2. Act
+        res = resolver_ecuacion(a, b, c) 
+
+        # 3. Assert
+        self.assertIn("soluciones", res)
+        self.assertEqual(res["tipo"], tipo_esperado) 
+        self.assertEqual(len(res["soluciones"]), 1)
+        self.assertAlmostEqual(res["soluciones"][0], solucion_esperada) 
   
     def test_sin_solucion_real(self): 
-        """x^2 + 1 = 0  =>  sin solucion real""" 
-        res = resolver_ecuacion(1, 0, 1) 
-        self.assertEqual(res["tipo"], "sin_solucion_real") 
+        """Confirma que retorne lista vacia si el discriminante es negativo."""
+        # 1. Arrange
+        a, b, c = 1, 0, 1
+        tipo_esperado = "sin_solucion_real"
+
+        # 2. Act
+        res = resolver_ecuacion(a, b, c) 
+
+        # 3. Assert
+        self.assertIn("soluciones", res)
+        self.assertEqual(res["tipo"], tipo_esperado) 
         self.assertEqual(res["soluciones"], []) 
   
     def test_ecuacion_lineal(self): 
-        """0x^2 + 2x + 4 = 0  =>  x = -2 (lineal)""" 
-        res = resolver_ecuacion(0, 2, 4) 
-        self.assertEqual(res["tipo"], "lineal") 
-        self.assertAlmostEqual(res["soluciones"][0], -2.0) 
+        """Valida la resolucion de ecuaciones lineales cuando a = 0 y b != 0."""
+        # 1. Arrange
+        a, b, c = 0, 2, 4
+        tipo_esperado = "lineal"
+        solucion_esperada = -2.0
+
+        # 2. Act
+        res = resolver_ecuacion(a, b, c) 
+
+        # 3. Assert
+        self.assertIn("soluciones", res)
+        self.assertEqual(res["tipo"], tipo_esperado) 
+        self.assertEqual(len(res["soluciones"]), 1)
+        self.assertAlmostEqual(res["soluciones"][0], solucion_esperada) 
   
     def test_coeficientes_invalidos(self): 
-        """a=0, b=0 => ValueError""" 
+        """Verifica que lance ValueError si a y b son ambos cero."""
+        # 1. Arrange
+        a, b, c = 0, 0, 5
+
+        # 2. Act & 3. Assert
         with self.assertRaises(ValueError): 
-            resolver_ecuacion(0, 0, 5) 
+            resolver_ecuacion(a, b, c) 
   
     def test_multiples_casos_con_subTest(self): 
-        """Varios casos parametrizados con subTest.""" 
+        """Evalua multiples combinaciones parametrizadas usando subTests."""
+        # 1. Arrange
         casos = [ 
             (1, 0, -4, "dos_soluciones", [2.0, -2.0]), 
             (2, -4, 2, "una_solucion", [1.0]), 
             (1, 2, 5, "sin_solucion_real", []), 
         ] 
+        
+        # 2. Act & 3. Assert
         for a, b, c, tipo_esp, sol_esp in casos: 
             with self.subTest(a=a, b=b, c=c): 
                 res = resolver_ecuacion(a, b, c) 
+                self.assertIn("soluciones", res)
                 self.assertEqual(res["tipo"], tipo_esp) 
-                if isinstance(sol_esp, list): 
-                    for obt, esp in zip(res["soluciones"], sol_esp): 
-                        self.assertAlmostEqual(obt, esp) 
-                else: 
-                    self.assertAlmostEqual(res["soluciones"][0], sol_esp) 
+                self.assertEqual(len(res["soluciones"]), len(sol_esp))
+                for obt, esp in zip(res["soluciones"], sol_esp): 
+                    self.assertAlmostEqual(obt, esp) 
 
-    # ------------------ RETO / CASOS ADICIONALES ------------------
+    # ------------------ PRUEBAS ADICIONALES (RETO) ------------------
 
     def test_coeficientes_grandes(self):
-        """1000000x^2 + 1000000x + 1000000 = 0 => sin solucion real"""
-        res = resolver_ecuacion(1000000, 1000000, 1000000)
+        """Maneja coeficientes de alto valor sin desbordamiento de memoria."""
+        # 1. Arrange
+        a, b, c = 1000000, 1000000, 1000000
+
+        # 2. Act
+        res = resolver_ecuacion(a, b, c)
+
+        # 3. Assert
         self.assertEqual(res["tipo"], "sin_solucion_real")
         self.assertEqual(res["soluciones"], [])
 
     def test_coeficientes_cero_parciales(self):
-        """x^2 = 0 => a=1, b=0, c=0 => una solucion x = 0.0"""
-        res = resolver_ecuacion(1, 0, 0)
+        """Resuelve el caso limite x^2 = 0 retornando solucion cero."""
+        # 1. Arrange
+        a, b, c = 1, 0, 0
+
+        # 2. Act
+        res = resolver_ecuacion(a, b, c)
+
+        # 3. Assert
         self.assertEqual(res["tipo"], "una_solucion")
+        self.assertEqual(len(res["soluciones"]), 1)
         self.assertAlmostEqual(res["soluciones"][0], 0.0)
 
     def test_coeficiente_a_negativo(self):
-        """-x^2 + 4 = 0 => x1 = -2.0, x2 = 2.0"""
-        res = resolver_ecuacion(-1, 0, 4)
+        """Resuelve correctamente ecuaciones con coeficiente principal negativo."""
+        # 1. Arrange
+        a, b, c = -1, 0, 4
+
+        # 2. Act
+        res = resolver_ecuacion(a, b, c)
+
+        # 3. Assert
         self.assertEqual(res["tipo"], "dos_soluciones")
+        self.assertEqual(len(res["soluciones"]), 2)
         self.assertAlmostEqual(res["soluciones"][0], -2.0)
         self.assertAlmostEqual(res["soluciones"][1], 2.0)
 
     def test_todos_coeficientes_cero(self):
-        """a=0, b=0, c=0 => ValueError"""
+        """Lanza ValueError cuando todos los coeficientes a, b y c son cero."""
+        # 1. Arrange
+        a, b, c = 0, 0, 0
+
+        # 2. Act & 3. Assert
         with self.assertRaises(ValueError):
-            resolver_ecuacion(0, 0, 0)
+            resolver_ecuacion(a, b, c)
 
     def test_alta_precision_decimal(self):
-        """x^2 - 2 = 0 => x1 = sqrt(2), x2 = -sqrt(2) con precision de 10 decimales"""
-        res = resolver_ecuacion(1, 0, -2)
+        """Valida raices irracionales con precision alta de 10 decimales."""
+        # 1. Arrange
+        a, b, c = 1, 0, -2
+
+        # 2. Act
+        res = resolver_ecuacion(a, b, c)
+
+        # 3. Assert
         self.assertEqual(res["tipo"], "dos_soluciones")
+        self.assertEqual(len(res["soluciones"]), 2)
         self.assertAlmostEqual(res["soluciones"][0], math.sqrt(2), places=10)
         self.assertAlmostEqual(res["soluciones"][1], -math.sqrt(2), places=10)
+
 
 if __name__ == '__main__': 
     unittest.main()
